@@ -1,10 +1,22 @@
 require 'open-uri'
 require 'zlib'
 require 'yajl'
+require 'mongo'
+
+c = Mongo::Connection.new['githubArchive']
 
 gz = open('http://data.githubarchive.org/2015-01-01-12.json.gz')
 js = Zlib::GzipReader.new(gz).read
 
-Yajl::Parser.parse(js) do |event|
-  print event
-end 
+(0...23).each do |hour|
+  puts hour
+  gz = open(URI.encode("http://data.githubarchive.org/2015-01-13-#{hour}.json.gz"))
+  js = Zlib::GzipReader.new(gz).read
+
+  Yajl::Parser.parse(js) do |event|
+
+    event['created_at'] = Time.parse(event['created_at'])
+    c['events'] << event
+
+  end
+end
