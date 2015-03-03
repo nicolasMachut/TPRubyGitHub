@@ -2,9 +2,11 @@ require 'open-uri'
 require 'zlib'
 require 'yajl'
 require 'mongo'
+require 'pp'
 
 c = Mongo::Connection.new['githubArchive']
 
+=begin
 gz = open('http://data.githubarchive.org/2015-01-01-12.json.gz')
 js = Zlib::GzipReader.new(gz).read
 
@@ -20,3 +22,15 @@ js = Zlib::GzipReader.new(gz).read
 
   end
 end
+=end
+
+ pp c['events'].aggregate([
+                          {:$group=>{
+                              :_id=>{
+                                  hour: {:$hour=>"$created_at"},
+                                  type: "$type"
+                              },
+                              :count=>{:$sum =>1}
+                          }}
+                      ])
+
